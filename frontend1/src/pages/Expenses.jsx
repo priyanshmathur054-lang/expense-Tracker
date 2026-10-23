@@ -1,103 +1,122 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import API from '../services/api';
 
-export default function Expenses() {
-  const [expenses, setExpenses] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+const Expenses = () => {
   const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchExpenses();
-  }, []);
+  // Sample data (apni API ya state se replace kar sakte hain)
+  const [expenses, setExpenses] = useState([
+    { id: 1, title: 'Lunch', category: 'Food', amount: 250, date: '12 Oct 2024' },
+    { id: 2, title: 'Taxi', category: 'Transport', amount: 350, date: '11 Oct 2024' },
+    { id: 3, title: 'Shopping', category: 'Lifestyle', amount: 1200, date: '10 Oct 2024' },
+    { id: 4, title: 'Movie', category: 'Entertainment', amount: 400, date: '09 Oct 2024' },
+    { id: 5, title: 'Book', category: 'Education', amount: 600, date: '08 Oct 2024' },
+  ]);
 
-  const fetchExpenses = async () => {
-    try {
-      const res = await API.get('/expenses');
-      setExpenses(res.data);
-    } catch (err) {
-      setError('Failed to fetch expenses');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this expense?')) {
-      try {
-        await API.delete(`/expenses/${id}`);
-        setExpenses(expenses.filter((e) => e._id !== id));
-      } catch (err) {
-        alert('Could not delete expense.');
-      }
-    }
+  const handleDelete = (id) => {
+    setExpenses(expenses.filter(item => item.id !== id));
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-800">All Expenses</h1>
-        <Link
-          to="/expenses/add"
-          className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm font-medium"
-        >
-          + Add Expense
-        </Link>
+    <div className="flex min-h-screen bg-slate-50">
+      {/* Sidebar */}
+      <div className="w-64 bg-blue-600 text-white flex flex-col justify-between p-6 shadow-lg">
+        <div>
+          <h1 className="text-xl font-bold mb-8 tracking-wide">Expense Tracker</h1>
+          <nav className="space-y-2">
+            <Link
+              to="/dashboard"
+              className="flex items-center gap-3 px-4 py-3 hover:bg-blue-700/50 rounded-xl font-medium text-sm transition"
+            >
+              📊 Dashboard
+            </Link>
+            <Link
+              to="/expenses"
+              className="flex items-center gap-3 px-4 py-3 bg-blue-700 rounded-xl font-medium text-sm transition"
+            >
+              💳 Expenses
+            </Link>
+            <Link
+              to="/expenses/add"
+              className="flex items-center gap-3 px-4 py-3 hover:bg-blue-700/50 rounded-xl font-medium text-sm transition"
+            >
+              ➕ Add Expense
+            </Link>
+          </nav>
+        </div>
+        <div>
+          <button
+            onClick={() => navigate('/login')}
+            className="flex items-center gap-3 px-4 py-3 w-full hover:bg-blue-700/50 rounded-xl font-medium text-sm transition text-left"
+          >
+            🚪 Logout
+          </button>
+        </div>
       </div>
 
-      {loading && <p>Loading expenses...</p>}
-      {error && <p className="text-red-500">{error}</p>}
+      {/* Main Content */}
+      <div className="flex-1 p-8">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-slate-800">Expense Listing</h2>
+          <Link
+            to="/expenses/add"
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-lg font-medium text-sm shadow-md transition flex items-center gap-2"
+          >
+            + Add Expense
+          </Link>
+        </div>
 
-      {!loading && (
-        <div className="bg-white rounded-lg shadow-sm border overflow-x-auto">
-          <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-gray-50 text-xs font-semibold text-gray-500 uppercase border-b">
-                <th className="p-3">#</th>
-                <th className="p-3">Title</th>
-                <th className="p-3">Category</th>
-                <th className="p-3">Amount</th>
-                <th className="p-3">Date</th>
-                <th className="p-3 text-center">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y text-sm">
-              {expenses.length === 0 ? (
-                <tr>
-                  <td colSpan="6" className="text-center py-4 text-gray-500">
-                    No expenses found.
-                  </td>
+        {/* Expenses Table Card */}
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="p-6 border-b border-slate-100">
+            <h3 className="text-lg font-bold text-slate-800">All Expenses</h3>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/70 border-b border-slate-200 text-slate-500 text-xs uppercase font-semibold">
+                  <th className="py-3 px-6">#</th>
+                  <th className="py-3 px-6">Title</th>
+                  <th className="py-3 px-6">Category</th>
+                  <th className="py-3 px-6">Amount</th>
+                  <th className="py-3 px-6">Date</th>
+                  <th className="py-3 px-6 text-center">Action</th>
                 </tr>
-              ) : (
-                expenses.map((exp, index) => (
-                  <tr key={exp._id} className="hover:bg-gray-50">
-                    <td className="p-3 font-medium text-gray-500">{index + 1}</td>
-                    <td className="p-3 font-semibold text-gray-800">{exp.title}</td>
-                    <td className="p-3 text-gray-600">{exp.category}</td>
-                    <td className="p-3 font-medium text-gray-900">₹ {exp.amount}</td>
-                    <td className="p-3 text-gray-500">{exp.date?.substring(0, 10)}</td>
-                    <td className="p-3 text-center space-x-3">
+              </thead>
+              <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
+                {expenses.map((item, index) => (
+                  <tr key={item.id} className="hover:bg-slate-50 transition">
+                    <td className="py-4 px-6 text-slate-500">{index + 1}</td>
+                    <td className="py-4 px-6 font-semibold text-slate-800">{item.title}</td>
+                    <td className="py-4 px-6 text-slate-600">{item.category}</td>
+                    <td className="py-4 px-6 font-medium text-slate-800">₹ {item.amount}</td>
+                    <td className="py-4 px-6 text-slate-500">{item.date}</td>
+                    <td className="py-4 px-6 text-center space-x-3">
                       <button
-                        onClick={() => navigate(`/expenses/${exp._id}/edit`)}
-                        className="text-blue-600 hover:text-blue-800"
+                        onClick={() => navigate(`/expenses/edit/${item.id}`)}
+                        className="text-blue-600 hover:text-blue-800 font-medium"
+                        title="Edit"
                       >
                         ✏️
                       </button>
                       <button
-                        onClick={() => handleDelete(exp._id)}
-                        className="text-red-600 hover:text-red-800"
+                        onClick={() => handleDelete(item.id)}
+                        className="text-rose-500 hover:text-rose-700 font-medium"
+                        title="Delete"
                       >
                         🗑️
                       </button>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
-}
+};
+
+export default Expenses;
